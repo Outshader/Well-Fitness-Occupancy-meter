@@ -1,0 +1,20 @@
+[project]
+name = "wellfitness-statistics-api-mk2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Outshader", email = "arturniklewicz012@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "dotenv>=0.9.9",
+    "requests>=2.34.2",
+]
+
+[project.scripts]
+wellfitness-statistics-api-mk2 = "wellfitness_statistics_api_mk2:main"
+
+[build-system]
+requires = ["uv_build>=0.12.16,<0.13.0"]
+build-backend = "uv_build"

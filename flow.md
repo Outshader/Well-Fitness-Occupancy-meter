@@ -1,0 +1,1 @@
+pull main data > pull class data > append to csv > send discord
