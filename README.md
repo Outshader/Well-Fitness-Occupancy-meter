@@ -67,6 +67,13 @@ The maximum amount tested by me was 100,000, and it returned results from "1752-
 #### Usage
 
 
+<<<<<<< HEAD
+=======
+### Main data
+url: https://wellfitness.perfectgym.com/ClientPortal2/Clubs/Clubs/GetMembersInClubs
+
+
+>>>>>>> 225c1e9 (some progress, the login sturcture, requests.session implementation and the main gym data implementation is done)
 ## Roadmap
 
 * [x] JWT token stuff:
@@ -86,4 +93,8 @@ The maximum amount tested by me was 100,000, and it returned results from "1752-
         - [x] club_requests.py cleaned
 	- [ ] more dry run options
 	- [ ] more webhook content options defined in the  (current format only works for what discord accepts)
+<<<<<<< HEAD
 	- [ ] streamlit graph 
+=======
+	- [ ] streamlit graph 
+>>>>>>> 225c1e9 (some progress, the login sturcture, requests.session implementation and the main gym data implementation is done)
