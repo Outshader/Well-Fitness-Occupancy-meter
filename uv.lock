@@ -1,9 +1,5 @@
 version = 1
-<<<<<<< HEAD
-revision = 3
-=======
 revision = 5
->>>>>>> 225c1e9 (some progress, the login sturcture, requests.session implementation and the main gym data implementation is done)
 requires-python = ">=3.12"
 
 [[package]]
@@ -205,19 +201,13 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "dotenv" },
-<<<<<<< HEAD
-=======
     { name = "python-dotenv" },
->>>>>>> 225c1e9 (some progress, the login sturcture, requests.session implementation and the main gym data implementation is done)
     { name = "requests" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "dotenv", specifier = ">=0.9.9" },
-<<<<<<< HEAD
-=======
     { name = "python-dotenv", specifier = ">=1.2.4" },
->>>>>>> 225c1e9 (some progress, the login sturcture, requests.session implementation and the main gym data implementation is done)
     { name = "requests", specifier = ">=2.34.2" },
 ]

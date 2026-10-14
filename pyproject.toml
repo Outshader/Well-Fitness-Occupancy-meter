@@ -9,10 +9,7 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "dotenv>=0.9.9",
-<<<<<<< HEAD
-=======
     "python-dotenv>=1.2.4",
->>>>>>> 225c1e9 (some progress, the login sturcture, requests.session implementation and the main gym data implementation is done)
     "requests>=2.34.2",
 ]
 

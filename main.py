@@ -1,28 +1,12 @@
-<<<<<<< HEAD
-import requests
-import dotenv
-
-# 
-
-def main():
-
-    
-    
-
-
-if __name__ == "__main__":
-    main()
-=======
 import json
-
 import requests
-from requests import Response, auth, request
+import requests
 from dotenv import load_dotenv
 import os
 
 LOGIN_URL = "https://wellfitness.perfectgym.pl/ClientPortal2/Auth/Login"
 CLASSES_URL = "https://wellfitness.perfectgym.pl/ClientPortal2/Classes/ClassCalendar/WeeklyClasses"
-MAIN_URL = (
+CLUB_URL = (
     "https://wellfitness.perfectgym.pl/ClientPortal2/Clubs/Clubs/GetMembersInClubs"
 )
 
@@ -39,18 +23,21 @@ def login():
 
 
 def get_club_data():
-    response = s.post(url=MAIN_URL)
-    print(response.json())
-
+    response = s.post(url=CLUB_URL)
+    global data 
+    data = response.json()
+    
+def get_class_data():
+    response = s.get(url=CLASSES_URL, json={"clubId": 17})
+    print(json.dumps(response.json(), indent=2))
 
 def main():
     global s
     s = requests.session()
     login()
-    print(s.cookies)
     get_club_data()
+    get_class_data()
 
 
 if __name__ == "__main__":
     main()
->>>>>>> 225c1e9 (some progress, the login sturcture, requests.session implementation and the main gym data implementation is done)
