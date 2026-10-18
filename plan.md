@@ -17,3 +17,9 @@ I think nevermind cause then on the next iteration it'll just subtract the value
 
 gym_id, poll_date, raw_ppl_count, fixed ppl_count, classes_ppl(limit-available), which_classes
 might do it in sql now, not sure
+
+
+
+---
+
+in get_gym_data or the gym normalize function add reporting which gym numbers were not found
