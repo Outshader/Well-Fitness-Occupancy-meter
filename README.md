@@ -3,6 +3,8 @@ Updated repo of https://github.com/Outshader/wellfitness_population_counter
 This version uses the PerfectGym/Well Fitness API
   
 ## API usage overview
+Program uses the polish timezone.
+
 The API or the main hosting is provided by Perfect Gym. You may be able to infer something about the workings of specific endpoints from their official API documentation:
 https://help.perfectgym.com/hc/en-001/sections/38985633521681-API
 

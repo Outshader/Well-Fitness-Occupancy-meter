@@ -1,10 +1,20 @@
+from ast import parse
 import json
 import requests
 from dotenv import load_dotenv
 import os
 import csv
+import argparse
 import re
 from datetime import datetime
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--gyms", "-g", nargs="+", type=str)
+
+args = parser.parse_args()
+
+print(args.gyms)
+
 
 LOGIN_URL = "https://wellfitness.perfectgym.pl/ClientPortal2/Auth/Login"
 CLASSES_URL = "https://wellfitness.perfectgym.pl/ClientPortal2/Classes/ClassCalendar/WeeklyClasses"
@@ -15,18 +25,30 @@ CLUB_URL = (
 load_dotenv("config.env")
 
 
-
 LOGIN = os.environ.get("Login", None)
 PASS = os.environ.get("Password", None)
-GYM = os.environ.get("Gyms", "1")
-CSV = bool(os.environ.get("CSV", True))
-DISCORD = bool(os.environ.get("Discord", True))
+
+GYM = os.environ.get("Gyms", None)
+
+CSV = bool(os.environ.get("CSV", "true"))
+
+DISCORD = bool(os.environ.get("Discord", "true"))
+DISCORD_URL = os.environ.get("Discord_url", None)
 
 
 def login(s: requests.sessions.Session):
     data = {"RememberMe": "true", "Login": LOGIN, "Password": PASS}
     print(LOGIN, PASS)
     response = s.post(url=LOGIN_URL, json=data)
+    if not response.ok:
+        try:
+            data = response.json()
+            failed = 0
+        except requests.exceptions.JSONDecodeError:
+            failed = 1
+        raise RuntimeWarning(
+            f"The response from {DISCORD_URL} came out with {response.status_code} \n The json response is {data if failed == 0 else 'Failed to convert response to json'}"
+        )
 
 
 def get_club_data(s: requests.sessions.Session, GYMS: list[str]):
@@ -36,12 +58,9 @@ def get_club_data(s: requests.sessions.Session, GYMS: list[str]):
     for i in data["UsersInClubList"]:
         if i["ClubName"] in GYMS:
             valid_data[i["ClubName"]] = i["UsersCountCurrentlyInClub"]
-        
+
     return valid_data
-    
-# def get_class_data():
-#     response = s.get(url=CLASSES_URL, json={"clubId": 17})
-#     print(json.dumps(response.json(), indent=2))
+
 
 def get_gyms():
     GYMS = re.findall(r"\d+", GYM)
@@ -49,46 +68,63 @@ def get_gyms():
     with open("data/clubs.csv", newline="", encoding="utf-8") as file:
         lines = csv.DictReader(file)
         for i in lines:
-            if i["ID"] in GYMS: 
+            if i["ID"] in GYMS:
                 GYMS_normal[i["ID"]] = i["club_name"]
-    
+
     if len(GYMS) != len(GYMS_normal):
         missing = [i for i in GYMS if i not in GYMS_normal.keys()]
-        print(f"Did not match following IDs with clubs.csv: \n{", ".join(missing)}")
-    
+        print(f"Did not match following IDs with clubs.csv: \n{', '.join(missing)}")
+
     return list(GYMS_normal.values())
-    
+
+
 def save_to_CSV(data: dict[str, str]):
     fieldnames = ["GymName", "Date", "Raw ppl count"]
     mode = "r+"
     date = datetime.now().isoformat(timespec="minutes")
-    
+
     if not os.path.exists("data/logs.csv"):
         mode = "a+"
-            
+
     with open("data/logs.csv", mode=mode, newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
-        
+
         if next(csv.reader(file), None) != writer.fieldnames:
             writer.writeheader()
-        
-        for k,v in data.items():
+
+        for k, v in data.items():
             writer.writerow({"GymName": k, "Date": date, "Raw ppl count": v})
 
-    
-    
+
+def send_to_discord(data: dict[str, str]):
+    content = "\n".join(f"{v} people at {k}" for k, v in data.items())
+    if len(data) > 1:
+        message = (
+            f"At {datetime.now().isoformat(timespec='minutes')} logged: \n{content}"
+        )
+    else:
+        message = f"At {datetime.now().isoformat(timespec='minutes')} logged: {content}"
+    response = requests.post(url=DISCORD_URL, json={"content": message})
+    if not response.ok:
+        try:
+            data = response.json()
+            failed = 0
+        except requests.exceptions.JSONDecodeError:
+            failed = 1
+        raise RuntimeWarning(
+            f"The response from {DISCORD_URL} came out with {response.status_code} \n The json response is {data if failed == 0 else 'Failed to convert response to json'}"
+        )
+
 
 def main():
     s = requests.session()
     login(s)
     GYMS = get_gyms()
-    data = get_club_data(s, GYMS) 
+    data = get_club_data(s, GYMS)
     if CSV:
-        save_to_CSV(data)    
-    if DISCORD:
-        # discord_webhook()
-        ...
-    
+        save_to_CSV(data)
+    if DISCORD and DISCORD_URL:
+        send_to_discord(data)
 
 
 if __name__ == "__main__":
