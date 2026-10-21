@@ -10,10 +10,11 @@ from datetime import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--gyms", "-g", nargs="+", type=str)
+parser.add_argument("--csv", type=bool)
+parser.add_argument("--discord", "-d", type=bool)
 
 args = parser.parse_args()
 
-print(args.gyms)
 
 
 LOGIN_URL = "https://wellfitness.perfectgym.pl/ClientPortal2/Auth/Login"
@@ -28,12 +29,45 @@ load_dotenv("config.env")
 LOGIN = os.environ.get("Login", None)
 PASS = os.environ.get("Password", None)
 
-GYM = os.environ.get("Gyms", None)
+if not args.gyms:
+    GYM = args.gyms
+else:
+    GYM = os.environ.get("Gyms", None)
+    
 
-CSV = bool(os.environ.get("CSV", "true"))
+# this makes CSV be the config value if the args.csv argument is false(not given) or it's content isn't in the typical bool values (true, false) 
+if args.csv: 
+    CSV = args.csv
+    if CSV.lower() not in ["true", "false"]:
+        raise argparse.ArgumentTypeError("Expected only 'true' or 'false' (or its variations)")
+    else:
+        CSV = bool(CSV)
+else:
+    CSV = os.environ.get("CSV", "true")
+    if CSV.lower() not in ["true", "false"]:
+        raise ValueError("CSV accepts only 'true' or 'false' as inputs. Change your config")
+    else:
+        CSV = bool(CSV)
 
-DISCORD = bool(os.environ.get("Discord", "true"))
+if args.discord: 
+    DISCORD = args.discord
+    if DISCORD.lower() not in ["true", "false"]:
+        raise argparse.ArgumentTypeError("Expected only 'true' or 'false' (or its variations)")
+    else:
+        DISCORD = bool(DISCORD)
+else:
+    DISCORD = os.environ.get("CSV", "true")
+    if DISCORD not in ["true", "false"]:
+        raise ValueError("CSV accepts only 'true' or 'false' as inputs. Change your config")
+    else:
+        DISCORD = bool(DISCORD)
+
 DISCORD_URL = os.environ.get("Discord_url", None)
+matches = re.fullmatch(r"^https://discord.com/api/webhooks/+\d/+\w/?$", DISCORD_URL)
+if not matches:
+    raise ValueError("Discord_url value doesn't look like a discord webhook link. The link must look similarly to 'https://discord.com/api/webhooks/123456789/qwerty12345'")
+
+
 
 
 def login(s: requests.sessions.Session):

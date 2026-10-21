@@ -22,4 +22,4 @@ might do it in sql now, not sure
 
 ---
 
-in get_gym_data or the gym normalize function add reporting which gym numbers were not found
+in get_gym_data or the gym normalize function 
