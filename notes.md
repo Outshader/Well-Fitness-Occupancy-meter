@@ -23,3 +23,6 @@ might do it in sql now, not sure
 ---
 
 in get_gym_data or the gym normalize function 
+
+
+---

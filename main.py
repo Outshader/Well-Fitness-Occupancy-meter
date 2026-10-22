@@ -9,9 +9,9 @@ import re
 from datetime import datetime
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--gyms", "-g", nargs="+", type=str)
-parser.add_argument("--csv", type=bool)
-parser.add_argument("--discord", "-d", type=bool)
+parser.add_argument("--gyms", "-g", nargs="+", type=str, default=None)
+parser.add_argument("--csv", type=bool, default=None)
+parser.add_argument("--discord", "-d", type=bool, default=None)
 
 args = parser.parse_args()
 
@@ -26,46 +26,49 @@ CLUB_URL = (
 load_dotenv("config.env")
 
 
-LOGIN = os.environ.get("Login", None)
-PASS = os.environ.get("Password", None)
+LOGIN = os.environ.get("login", None)
+PASS = os.environ.get("password", None)
 
-if not args.gyms:
+if args.gyms:
     GYM = args.gyms
 else:
     GYM = os.environ.get("Gyms", None)
     
-
+    
+### CSV
 # this makes CSV be the config value if the args.csv argument is false(not given) or it's content isn't in the typical bool values (true, false) 
 if args.csv: 
-    CSV = args.csv
-    if CSV.lower() not in ["true", "false"]:
-        raise argparse.ArgumentTypeError("Expected only 'true' or 'false' (or its variations)")
-    else:
-        CSV = bool(CSV)
+    CSV = str(args.csv)
 else:
     CSV = os.environ.get("CSV", "true")
-    if CSV.lower() not in ["true", "false"]:
-        raise ValueError("CSV accepts only 'true' or 'false' as inputs. Change your config")
-    else:
-        CSV = bool(CSV)
 
+CSV = CSV.lower().strip()    
+    
+if CSV not in ["true", "false"]:
+    raise ValueError("CSV accepts only 'true' or 'false' as inputs. Change your config")
+else:
+    # takes false if csv not 'true' 
+    CSV = CSV == "true"
+
+### DISCORD
 if args.discord: 
     DISCORD = args.discord
-    if DISCORD.lower() not in ["true", "false"]:
-        raise argparse.ArgumentTypeError("Expected only 'true' or 'false' (or its variations)")
-    else:
-        DISCORD = bool(DISCORD)
 else:
-    DISCORD = os.environ.get("CSV", "true")
-    if DISCORD not in ["true", "false"]:
-        raise ValueError("CSV accepts only 'true' or 'false' as inputs. Change your config")
-    else:
-        DISCORD = bool(DISCORD)
+    DISCORD = os.environ.get("Discord", "true")
+
+DISCORD = DISCORD.strip().lower()
+
+if DISCORD not in ["true", "false"]:
+    raise ValueError("Discord cmd argument and config value only accept 'true' or 'false' (or their variations) as inputs. Change your config")
+else:
+    DISCORD = bool(DISCORD)
 
 DISCORD_URL = os.environ.get("Discord_url", None)
-matches = re.fullmatch(r"^https://discord.com/api/webhooks/+\d/+\w/?$", DISCORD_URL)
-if not matches:
-    raise ValueError("Discord_url value doesn't look like a discord webhook link. The link must look similarly to 'https://discord.com/api/webhooks/123456789/qwerty12345'")
+if DISCORD_URL:
+    DISCORD_URL = DISCORD_URL.strip()
+    matches = re.fullmatch(r"^https://discord.com/api/webhooks/\d+/\w+/?$", DISCORD_URL)
+    if not matches:
+        raise ValueError("Discord_url value doesn't look like a discord webhook link. The link must look similarly to 'https://discord.com/api/webhooks/123456789/qwerty12345'")
 
 
 
@@ -80,8 +83,10 @@ def login(s: requests.sessions.Session):
             failed = 0
         except requests.exceptions.JSONDecodeError:
             failed = 1
+        if response.status_code == 499:
+            additional_info = "The problem might be with the authentication, make sure you're credentials in config.env are correct."
         raise RuntimeWarning(
-            f"The response from {DISCORD_URL} came out with {response.status_code} \n The json response is {data if failed == 0 else 'Failed to convert response to json'}"
+            f"The response from {LOGIN_URL} came out with {response.status_code} \n The json response is {data if failed == 0 else 'Failed to convert response to json'}. \n {f"Some additional error information: {additional_info}" if additional_info else ""}"
         )
 
 
