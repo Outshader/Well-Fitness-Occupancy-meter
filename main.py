@@ -16,7 +16,6 @@ parser.add_argument("--discord", "-d", type=bool, default=None)
 args = parser.parse_args()
 
 
-
 LOGIN_URL = "https://wellfitness.perfectgym.pl/ClientPortal2/Auth/Login"
 CLASSES_URL = "https://wellfitness.perfectgym.pl/ClientPortal2/Classes/ClassCalendar/WeeklyClasses"
 CLUB_URL = (
@@ -33,25 +32,25 @@ if args.gyms:
     GYM = args.gyms
 else:
     GYM = os.environ.get("Gyms", None)
-    
-    
+
+
 ### CSV
-# this makes CSV be the config value if the args.csv argument is false(not given) or it's content isn't in the typical bool values (true, false) 
-if args.csv: 
+# this makes CSV be the config value if the args.csv argument is false(not given) or it's content isn't in the typical bool values (true, false)
+if args.csv:
     CSV = str(args.csv)
 else:
     CSV = os.environ.get("CSV", "true")
 
-CSV = CSV.lower().strip()    
-    
+CSV = CSV.lower().strip()
+
 if CSV not in ["true", "false"]:
     raise ValueError("CSV accepts only 'true' or 'false' as inputs. Change your config")
 else:
-    # takes false if csv not 'true' 
+    # takes false if csv not 'true'
     CSV = CSV == "true"
 
 ### DISCORD
-if args.discord: 
+if args.discord:
     DISCORD = args.discord
 else:
     DISCORD = os.environ.get("Discord", "true")
@@ -59,7 +58,9 @@ else:
 DISCORD = DISCORD.strip().lower()
 
 if DISCORD not in ["true", "false"]:
-    raise ValueError("Discord cmd argument and config value only accept 'true' or 'false' (or their variations) as inputs. Change your config")
+    raise ValueError(
+        "Discord cmd argument and config value only accept 'true' or 'false' (or their variations) as inputs. Change your config"
+    )
 else:
     DISCORD = bool(DISCORD)
 
@@ -68,9 +69,22 @@ if DISCORD_URL:
     DISCORD_URL = DISCORD_URL.strip()
     matches = re.fullmatch(r"^https://discord.com/api/webhooks/\d+/\w+/?$", DISCORD_URL)
     if not matches:
-        raise ValueError("Discord_url value doesn't look like a discord webhook link. The link must look similarly to 'https://discord.com/api/webhooks/123456789/qwerty12345'")
+        raise ValueError(
+            "Discord_url value doesn't look like a discord webhook link. The link must look similarly to 'https://discord.com/api/webhooks/123456789/qwerty12345'"
+        )
 
 
+def request_error(response: requests.Response):
+    try:
+        data = response.json()
+        failed = 0
+    except requests.exceptions.JSONDecodeError:
+        failed = 1
+    if response.status_code == 499:
+        additional_info = "The problem might be with the authentication, make sure you're credentials in config.env are correct."
+    raise RuntimeWarning(
+        f"The response from {LOGIN_URL} came out with {response.status_code} \n The json response is {data if failed == 0 else 'Failed to convert response to json'}. \n {f'Some additional error information: {additional_info}' if additional_info else ''}"
+    )
 
 
 def login(s: requests.sessions.Session):
@@ -78,16 +92,7 @@ def login(s: requests.sessions.Session):
     print(LOGIN, PASS)
     response = s.post(url=LOGIN_URL, json=data)
     if not response.ok:
-        try:
-            data = response.json()
-            failed = 0
-        except requests.exceptions.JSONDecodeError:
-            failed = 1
-        if response.status_code == 499:
-            additional_info = "The problem might be with the authentication, make sure you're credentials in config.env are correct."
-        raise RuntimeWarning(
-            f"The response from {LOGIN_URL} came out with {response.status_code} \n The json response is {data if failed == 0 else 'Failed to convert response to json'}. \n {f"Some additional error information: {additional_info}" if additional_info else ""}"
-        )
+        request_error(response)
 
 
 def get_club_data(s: requests.sessions.Session, GYMS: list[str]):
@@ -145,14 +150,7 @@ def send_to_discord(data: dict[str, str]):
         message = f"At {datetime.now().isoformat(timespec='minutes')} logged: {content}"
     response = requests.post(url=DISCORD_URL, json={"content": message})
     if not response.ok:
-        try:
-            data = response.json()
-            failed = 0
-        except requests.exceptions.JSONDecodeError:
-            failed = 1
-        raise RuntimeWarning(
-            f"The response from {DISCORD_URL} came out with {response.status_code} \n The json response is {data if failed == 0 else 'Failed to convert response to json'}"
-        )
+        request_error(response)
 
 
 def main():
