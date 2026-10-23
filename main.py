@@ -25,8 +25,8 @@ CLUB_URL = (
 load_dotenv("config.env")
 
 
-LOGIN = os.environ.get("login", None)
-PASS = os.environ.get("password", None)
+LOGIN = os.environ.get("Login", None)
+PASS = os.environ.get("Password", None)
 
 if args.gyms:
     GYM = args.gyms

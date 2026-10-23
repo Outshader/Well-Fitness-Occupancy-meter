@@ -1,14 +1,13 @@
 [project]
 name = "wellfitness-statistics-api-mk2"
 version = "0.1.0"
-description = "Add your description here"
+description = "App for logging the Well Fitness gyms' number of clients at a time"
 readme = "README.md"
 authors = [
     { name = "Outshader", email = "arturniklewicz012@gmail.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "dotenv>=0.9.9",
     "python-dotenv>=1.2.4",
     "requests>=2.34.2",
 ]
